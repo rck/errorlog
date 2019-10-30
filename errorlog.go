@@ -25,11 +25,15 @@ func (e *ErrorLog) Len() int {
 	return len(e.errs)
 }
 
-// Errs returns a slice of errors written to the ErrorLog.
+// Errs returns a copy of the slice of errors written to the ErrorLog.
 func (e *ErrorLog) Errs() []error {
 	e.Lock()
 	defer e.Unlock()
-	return e.errs
+
+	// don't leak internal slice
+	cpy := make([]error, len(e.errs))
+	copy(cpy, e.errs)
+	return cpy
 }
 
 // Append appends an error to the ErrorLog.
