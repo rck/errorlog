@@ -80,3 +80,14 @@ func (e *ErrorLogWithIDs) GetID(id string) (error, error) {
 
 	return nil, fmt.Errorf("Could not find ID: '%s'", id)
 }
+
+func (e *ErrorLogWithIDs) ErrsIDs() ([]error, []string) {
+	e.Lock()
+	defer e.Unlock()
+
+	cpye := make([]error, len(e.errs))
+	copy(cpye, e.errs)
+	cpyi := make([]string, len(e.ids))
+	copy(cpyi, e.ids)
+	return cpye, cpyi
+}
