@@ -5,17 +5,33 @@
 //Package errorlog implements a concurrency safe log of errors.
 package errorlog
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 // ErrorLog is the struct that tracks a list of errors.
 type ErrorLog struct {
 	errs []error
+
 	sync.Mutex
+}
+
+// ErrorLog is the struct that tracks a list of errors.
+type ErrorLogWithIDs struct {
+	ids []string
+
+	ErrorLog
 }
 
 // NewErrorLog returns a new ErrorLog.
 func NewErrorLog() *ErrorLog {
 	return &ErrorLog{}
+}
+
+// NewErrorLogWithIDs returns a new ErrorLogWithIDs.
+func NewErrorLogWithIDs() *ErrorLogWithIDs {
+	return &ErrorLogWithIDs{}
 }
 
 // Len returns the length (number of errors) in the ErrorLog.
@@ -41,4 +57,26 @@ func (e *ErrorLog) Append(errs ...error) {
 	e.Lock()
 	e.errs = append(e.errs, errs...)
 	e.Unlock()
+}
+
+// Appends an error with an ID
+func (e *ErrorLogWithIDs) AppendWithID(err error, id string) {
+	e.Lock()
+	e.errs = append(e.errs, err)
+	e.ids = append(e.ids, id)
+	e.Unlock()
+}
+
+// GetID returns the error associated with the given ID.
+func (e *ErrorLogWithIDs) GetID(id string) (error, error) {
+	e.Lock()
+	defer e.Unlock()
+
+	for i, idr := range e.ids {
+		if idr == id {
+			return e.errs[i], nil
+		}
+	}
+
+	return nil, fmt.Errorf("Could not find ID: '%s'", id)
 }

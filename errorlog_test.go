@@ -36,3 +36,28 @@ func TestLog(t *testing.T) {
 		}
 	}
 }
+
+func TestLogWithIDs(t *testing.T) {
+	l := NewErrorLogWithIDs()
+	l.AppendWithID(errors.New("test1"), "myid1")
+	l.AppendWithID(errors.New("test2"), "myid2")
+
+	expected := 2
+	got := l.Len()
+	if expected != got {
+		t.Fatalf("Expected length to be %d, but got: %d", expected, got)
+	}
+
+	e, err := l.GetID("myid2")
+	if err != nil {
+		t.Fatalf("Expected to find existing ID")
+	}
+
+	if e.Error() != "test2" {
+		t.Fatalf("Expected error sting to be 'test2'")
+	}
+
+	if _, err := l.GetID("doesnotexist"); err == nil {
+		t.Fatalf("Expected an error for non existing ID")
+	}
+}
